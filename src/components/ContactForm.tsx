@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -11,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { Mail } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
   fullName: z.string().min(2, { message: 'Full name is required' }),
@@ -51,19 +51,36 @@ const ContactForm = () => {
     },
   });
 
-  const onSubmit = (data: FormValues) => {
+  const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
-    // Simulate form submission
-    setTimeout(() => {
-      console.log('Form submitted with:', data);
-      setIsSubmitting(false);
+    try {
+      const { error } = await supabase.functions.invoke('send-notifications', {
+        body: {
+          fullName: data.fullName,
+          email: data.email,
+          phone: data.phone,
+          concern: data.concern
+        }
+      });
+
+      if (error) throw error;
+
       setIsSubmitted(true);
       toast({
         title: "Submission Received",
         description: "We'll be in touch within 24 hours to schedule your free consultation.",
       });
       reset();
-    }, 1500);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast({
+        title: "Error",
+        description: "There was a problem submitting your form. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
