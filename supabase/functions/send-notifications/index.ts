@@ -20,12 +20,6 @@ serve(async (req) => {
     // Initialize Resend
     const resend = new Resend(Deno.env.get("RESEND_API_KEY"))
 
-    // Initialize Twilio
-    const twilioClient = twilio(
-      Deno.env.get("TWILIO_ACCOUNT_SID"),
-      Deno.env.get("TWILIO_AUTH_TOKEN")
-    )
-
     // Send welcome email
     const emailResponse = await resend.emails.send({
       from: "Mangaliyaa Maal <onboarding@resend.dev>",
@@ -42,19 +36,40 @@ serve(async (req) => {
 
     console.log("Email sent:", emailResponse)
 
-    // Send SMS notification if phone number is provided
+    // Only attempt to send SMS if valid Twilio credentials are available
+    let smsResponse = null;
     if (phone) {
-      const smsResponse = await twilioClient.messages.create({
-        body: `Hi ${fullName}, thank you for contacting Mangaliyaa Maal! We've received your message and will get back to you within 24 hours to schedule your session.`,
-        from: Deno.env.get("TWILIO_PHONE_NUMBER"),
-        to: phone
-      })
-
-      console.log("SMS sent:", smsResponse.sid)
+      const accountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
+      const authToken = Deno.env.get("TWILIO_AUTH_TOKEN");
+      const twilioPhone = Deno.env.get("TWILIO_PHONE_NUMBER");
+      
+      // Check if valid Twilio credentials exist before trying to send SMS
+      if (accountSid && authToken && twilioPhone && accountSid.startsWith("AC")) {
+        try {
+          const twilioClient = twilio(accountSid, authToken);
+          
+          smsResponse = await twilioClient.messages.create({
+            body: `Hi ${fullName}, thank you for contacting Mangaliyaa Maal! We've received your message and will get back to you within 24 hours to schedule your session.`,
+            from: twilioPhone,
+            to: phone
+          });
+          
+          console.log("SMS sent:", smsResponse.sid);
+        } catch (smsError) {
+          // Log SMS error but don't fail the overall request
+          console.error("Error sending SMS:", smsError);
+        }
+      } else {
+        console.log("Skipping SMS: Invalid or missing Twilio credentials");
+      }
     }
 
     return new Response(
-      JSON.stringify({ message: "Notifications sent successfully" }),
+      JSON.stringify({ 
+        message: "Notifications sent successfully", 
+        email: emailResponse,
+        sms: smsResponse 
+      }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
