@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -9,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
-import { Mail } from "lucide-react";
+import { Mail, MessageSquare, Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
@@ -20,7 +21,7 @@ const formSchema = z.object({
   gender: z.enum(['male', 'non-binary', 'prefer-not-to-say']),
   email: z.string().email({ message: 'Invalid email address' }),
   phone: z.string().min(10, { message: 'Valid phone number is required' }),
-  contactPreference: z.enum(['email', 'phone', 'sms']),
+  contactPreference: z.enum(['email', 'phone', 'sms', 'whatsapp']),
   concern: z.string().optional(),
   marketingConsent: z.boolean().optional(),
 });
@@ -191,7 +192,7 @@ const ContactForm = () => {
               {/* Preferred Contact Method */}
               <div className="space-y-2">
                 <Label className="text-harbor-ivory">Preferred Contact Method *</Label>
-                <RadioGroup defaultValue="email" className="flex space-x-4">
+                <RadioGroup defaultValue="email" className="flex flex-wrap gap-4">
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem 
                       value="email" 
@@ -199,7 +200,9 @@ const ContactForm = () => {
                       {...register('contactPreference')}
                       className="border-white text-harbor-teal"
                     />
-                    <Label htmlFor="email-radio" className="text-harbor-ivory">Email</Label>
+                    <Label htmlFor="email-radio" className="text-harbor-ivory flex items-center">
+                      <Mail size={16} className="mr-1" /> Email
+                    </Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem 
@@ -208,7 +211,9 @@ const ContactForm = () => {
                       {...register('contactPreference')}
                       className="border-white text-harbor-teal"
                     />
-                    <Label htmlFor="phone-radio" className="text-harbor-ivory">Phone</Label>
+                    <Label htmlFor="phone-radio" className="text-harbor-ivory flex items-center">
+                      <Phone size={16} className="mr-1" /> Phone
+                    </Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem 
@@ -218,6 +223,17 @@ const ContactForm = () => {
                       className="border-white text-harbor-teal"
                     />
                     <Label htmlFor="sms-radio" className="text-harbor-ivory">SMS</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem 
+                      value="whatsapp" 
+                      id="whatsapp-radio" 
+                      {...register('contactPreference')}
+                      className="border-white text-harbor-teal"
+                    />
+                    <Label htmlFor="whatsapp-radio" className="text-harbor-ivory flex items-center">
+                      <MessageSquare size={16} className="mr-1" /> WhatsApp
+                    </Label>
                   </div>
                 </RadioGroup>
                 {errors.contactPreference && (

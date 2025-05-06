@@ -15,15 +15,19 @@ serve(async (req) => {
   }
 
   try {
+    // For testing, we'll override contact details
     const { fullName, email, phone, concern } = await req.json()
-
+    
+    const testEmail = "mridupadhyay49@gmail.com"
+    const testPhone = "7447379117"
+    
     // Initialize Resend
     const resend = new Resend(Deno.env.get("RESEND_API_KEY"))
 
     // Send welcome email
     const emailResponse = await resend.emails.send({
       from: "Mangaliyaa Maal <onboarding@resend.dev>",
-      to: [email],
+      to: [testEmail], // Using test email
       subject: "Welcome to Mangaliyaa Maal - Your Journey Begins Here",
       html: `
         <h1>Welcome to Mangaliyaa Maal, ${fullName}!</h1>
@@ -36,39 +40,56 @@ serve(async (req) => {
 
     console.log("Email sent:", emailResponse)
 
-    // Only attempt to send SMS if valid Twilio credentials are available
+    // Prepare response tracking
     let smsResponse = null;
-    if (phone) {
-      const accountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
-      const authToken = Deno.env.get("TWILIO_AUTH_TOKEN");
-      const twilioPhone = Deno.env.get("TWILIO_PHONE_NUMBER");
-      
-      // Check if valid Twilio credentials exist before trying to send SMS
-      if (accountSid && authToken && twilioPhone && accountSid.startsWith("AC")) {
+    let whatsappResponse = null;
+    
+    // Only attempt to send SMS and WhatsApp if valid Twilio credentials are available
+    const accountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
+    const authToken = Deno.env.get("TWILIO_AUTH_TOKEN");
+    const twilioPhone = Deno.env.get("TWILIO_PHONE_NUMBER");
+    
+    // Check if valid Twilio credentials exist before trying to send messages
+    if (accountSid && authToken && twilioPhone && accountSid.startsWith("AC")) {
+      try {
+        const twilioClient = twilio(accountSid, authToken);
+        
+        // Send SMS
+        smsResponse = await twilioClient.messages.create({
+          body: `Hi ${fullName}, thank you for contacting Mangaliyaa Maal! We've received your message and will get back to you within 24 hours to schedule your session.`,
+          from: twilioPhone,
+          to: testPhone // Using test phone number
+        });
+        
+        console.log("SMS sent:", smsResponse.sid);
+        
+        // Send WhatsApp message
+        // Note: Twilio WhatsApp requires special formatting and sandbox setup
         try {
-          const twilioClient = twilio(accountSid, authToken);
-          
-          smsResponse = await twilioClient.messages.create({
-            body: `Hi ${fullName}, thank you for contacting Mangaliyaa Maal! We've received your message and will get back to you within 24 hours to schedule your session.`,
-            from: twilioPhone,
-            to: phone
+          whatsappResponse = await twilioClient.messages.create({
+            body: `Hello ${fullName}, this is Mangaliyaa Maal. Thank you for reaching out to us. We've received your inquiry and will contact you soon to discuss your needs.`,
+            from: `whatsapp:${twilioPhone}`,
+            to: `whatsapp:${testPhone}` // Using test phone number with WhatsApp prefix
           });
           
-          console.log("SMS sent:", smsResponse.sid);
-        } catch (smsError) {
-          // Log SMS error but don't fail the overall request
-          console.error("Error sending SMS:", smsError);
+          console.log("WhatsApp message sent:", whatsappResponse.sid);
+        } catch (whatsappError) {
+          console.error("Error sending WhatsApp message:", whatsappError);
         }
-      } else {
-        console.log("Skipping SMS: Invalid or missing Twilio credentials");
+      } catch (twilioError) {
+        // Log Twilio error but don't fail the overall request
+        console.error("Error using Twilio services:", twilioError);
       }
+    } else {
+      console.log("Skipping Twilio services: Invalid or missing credentials");
     }
 
     return new Response(
       JSON.stringify({ 
         message: "Notifications sent successfully", 
         email: emailResponse,
-        sms: smsResponse 
+        sms: smsResponse,
+        whatsapp: whatsappResponse
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

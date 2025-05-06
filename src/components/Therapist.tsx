@@ -4,7 +4,7 @@ import React from 'react';
 const Therapist = () => {
   return (
     <section id="about" className="container-section bg-harbor-navy/10">
-      <h2 className="section-title">Meet Your Therapist</h2>
+      <h2 className="section-title">What We Do and What We Aim</h2>
       
       <div className="grid md:grid-cols-2 gap-12 items-center max-w-5xl mx-auto">
         <div className="flex justify-center">
@@ -16,26 +16,25 @@ const Therapist = () => {
         </div>
         
         <div>
-          <h3 className="text-2xl font-serif font-bold text-harbor-navy mb-2">Dr. James Wilson</h3>
-          <p className="text-harbor-teal font-medium mb-4">Ph.D. Clinical Psychology, Certified Men's Health Counselor</p>
+          <h3 className="text-2xl font-serif font-bold text-harbor-navy mb-2">Our Mission</h3>
+          <p className="text-harbor-teal font-medium mb-4">Providing comprehensive support and guidance for men's mental well-being</p>
           
           <div className="space-y-4 text-harbor-charcoal">
             <p>
-              With over 15 years of experience helping men navigate life's challenges, 
-              I've dedicated my practice to creating a space where men can find both 
-              guidance and understanding without judgment.
+              We are dedicated to creating a safe and understanding space where men can explore their challenges,
+              find their inner strength, and develop the tools they need for lasting emotional wellness.
             </p>
             
             <p>
-              My approach combines evidence-based techniques with a deep appreciation 
-              for the unique pressures men face in today's world. Whether you're dealing 
-              with career stress, relationship difficulties, or major life transitions, 
-              my goal is to help you build resilience while honoring your authentic self.
+              Our approach combines evidence-based techniques with compassionate support
+              to help men navigate life's complexities with confidence and clarity.
+              We aim to break down barriers to seeking help and normalize mental health care for men.
             </p>
             
             <p className="italic font-serif text-harbor-navy">
-              "I believe courage isn't the absence of fear but the decision to move forward anyway. 
-              Every man has the capacity for extraordinary growth when given the right tools and support."
+              "We believe every man deserves the opportunity to live authentically and purposefully,
+              with strong connections, clear direction, and inner peace that comes from addressing
+              rather than suppressing emotional needs."
             </p>
           </div>
         </div>
